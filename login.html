@@ -1,1 +1,51 @@
-{% extends 'base.html' %}{% block title %}লগইন{% endblock %}{% block content %}<section class="panel narrow"><h1>অ্যাকাউন্টে প্রবেশ করুন</h1><p>অ্যাডমিন ও সদস্য উভয়েই এখানে লগইন করবেন।</p><form method="post"><input type="hidden" name="_csrf" value="{{csrf_token()}}"><label>ইউজারনেম<input name="username" autocomplete="username" required></label><label>পাসওয়ার্ড<input type="password" name="password" autocomplete="current-password" required></label><button class="primary">লগইন</button></form></section>{% endblock %}
+
+{% extends 'base.html' %}
+
+{% block title %}লগইন{% endblock %}
+
+{% block content %}
+<section class="panel narrow login-panel">
+
+    <div class="login-header">
+        <h1>স্বাগতম!</h1>
+        <p>বন্ধুর বন্ধন সমিতি লিমিটেড</p>
+        <p>আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+    </div>
+
+    <form method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+        <label>
+            ইউজারনেম
+            <input
+                type="text"
+                name="username"
+                placeholder="আপনার ইউজারনেম লিখুন"
+                autocomplete="username"
+                required
+                autofocus
+            >
+        </label>
+
+        <label>
+            পাসওয়ার্ড
+            <input
+                type="password"
+                name="password"
+                placeholder="আপনার পাসওয়ার্ড লিখুন"
+                autocomplete="current-password"
+                required
+            >
+        </label>
+
+        <button type="submit" class="primary">
+            লগইন করুন
+        </button>
+    </form>
+
+    <p class="login-footer">
+        বন্ধুর বন্ধন সমিতি লিমিটেড
+    </p>
+
+</section>
+{% endblock %}
