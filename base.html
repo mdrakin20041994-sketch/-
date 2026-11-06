@@ -1,1 +1,77 @@
-<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}বন্ধুর বন্ধন সমিতি লিমিটেড{% endblock %}</title><link rel="stylesheet" href="{{url_for('static',filename='style.css')}}"></head><body><header><div class="nav"><a class="brand" href="{{url_for('home')}}">◈ বন্ধুর বন্ধন সমিতি লিমিটেড</a>{% if session.get('uid') %}<nav><a href="{{url_for('home')}}">ড্যাশবোর্ড</a><a href="{{url_for('change_password')}}">পাসওয়ার্ড</a><form method="post" action="{{url_for('logout')}}"><input type="hidden" name="_csrf" value="{{csrf_token()}}"><button class="linkbtn">লগআউট</button></form></nav>{% endif %}</div></header><main>{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="alert {{category}}">{{message}}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main><footer>বন্ধুর বন্ধন সমিতি লিমিটেড • মাসিক নির্ধারিত জমা ৳২,০০০</footer></body></html>
+
+<!doctype html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="theme-color" content="#116b50">
+    <meta name="description" content="বন্ধুর বন্ধন সমিতি লিমিটেড - সদস্য ও মাসিক জমার হিসাব ব্যবস্থাপনা">
+
+    <title>{% block title %}বন্ধুর বন্ধন সমিতি লিমিটেড{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<header>
+    <div class="nav">
+
+        <a class="brand" href="{{ url_for('home') }}">
+            <span>◈</span>
+            বন্ধুর বন্ধন সমিতি লিমিটেড
+        </a>
+
+        {% if session.get('uid') %}
+
+        <nav>
+            <a href="{{ url_for('home') }}">ড্যাশবোর্ড</a>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('new_member') }}">নতুন সদস্য</a>
+            {% endif %}
+
+            <a href="{{ url_for('change_password') }}">পাসওয়ার্ড পরিবর্তন</a>
+
+            <form method="post" action="{{ url_for('logout') }}">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button type="submit" class="linkbtn">লগআউট</button>
+            </form>
+        </nav>
+
+        {% endif %}
+
+    </div>
+</header>
+
+<main>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% for category, message in messages %}
+
+        <div class="alert {{ category }}">
+            {{ message }}
+        </div>
+
+        {% endfor %}
+
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+</main>
+
+<footer>
+    <p>বন্ধুর বন্ধন সমিতি লিমিটেড</p>
+    <small>সদস্য ব্যবস্থাপনা ও মাসিক জমার হিসাব</small>
+    <small>মাসিক নির্ধারিত জমা: ৳২,০০০</small>
+</footer>
+
+</body>
+</html>
