@@ -1,1 +1,234 @@
-{% extends 'base.html' %}{% block title %}{{member.full_name}}{% endblock %}{% block content %}<div class="heading"><div><h1>{{member.full_name}}</h1><p>সদস্য নম্বর #{{member.id}} • যোগদান {{member.joined_month}}</p></div>{% if is_admin %}<a class="button" href="{{url_for('edit_member',member_id=member.id)}}">তথ্য সংশোধন</a>{% endif %}</div><div class="stats"><div class="stat"><small>মাসিক নির্ধারিত</small><strong>৳২,০০০</strong></div><div class="stat"><small>এ পর্যন্ত প্রত্যাশিত</small><strong>৳{{'{:,}'.format(s.expected)}}</strong></div><div class="stat"><small>মোট জমা</small><strong>৳{{'{:,}'.format(s.total)}}</strong></div><div class="stat"><small>বকেয়া / অগ্রিম</small><strong>৳{{'{:,}'.format(s.due)}}</strong>{% if s.credit %}<small>অগ্রিম ৳{{'{:,}'.format(s.credit)}}</small>{% endif %}</div></div><div class="two"><section class="panel"><h2>ব্যক্তিগত তথ্য</h2><dl><dt>নাম</dt><dd>{{member.full_name}}</dd><dt>পিতার নাম</dt><dd>{{member.father_name or '—'}}</dd><dt>মাতার নাম</dt><dd>{{member.mother_name or '—'}}</dd><dt>জন্মতারিখ</dt><dd>{{member.birth_date or '—'}}</dd><dt>মোবাইল</dt><dd>{{member.phone or '—'}}</dd><dt>ঠিকানা</dt><dd>{{member.address or '—'}}</dd><dt>জাতীয় পরিচয়পত্র</dt><dd>{{member.nid or '—'}}</dd><dt>ইউজারনেম</dt><dd>{{member.username}}</dd></dl></section>{% if is_admin %}<section class="panel"><h2>নতুন জমা লিখুন</h2><p>শুধুমাত্র অ্যাডমিন জমা যোগ করতে পারবেন।</p><form method="post"><input type="hidden" name="_csrf" value="{{csrf_token()}}"><label>কোন মাসের জমা?<input type="month" name="month" min="{{member.joined_month}}" max="{{today_month}}" value="{{today_month}}" required></label><label>টাকার পরিমাণ (৳)<input type="number" name="amount" min="1" max="1000000" value="2000" required></label><label>মন্তব্য (ঐচ্ছিক)<input name="note" maxlength="300" placeholder="নগদ জমা / রসিদ নম্বর"></label><button class="primary">জমা সংরক্ষণ করুন</button></form></section>{% endif %}</div><section class="panel"><h2>মাসভিত্তিক জমা</h2><div class="tablewrap"><table><thead><tr><th>মাস</th><th>জমা</th><th>নির্ধারিত</th><th>অবস্থা</th></tr></thead><tbody>{% for t in totals %}<tr><td>{{t.month}}</td><td>৳{{'{:,}'.format(t.amount)}}</td><td>৳২,০০০</td><td>{{'সম্পূর্ণ' if t.amount>=2000 else 'আংশিক'}}</td></tr>{% else %}<tr><td colspan="4">এখনো কোনো জমা নেই।</td></tr>{% endfor %}</tbody></table></div><p class="hint">বকেয়া হিসাব যোগদানের মাস থেকে বর্তমান মাস পর্যন্ত মোট নির্ধারিত জমা থেকে সব জমা বাদ দিয়ে গণনা করা হয়।</p></section><section class="panel"><h2>জমার বিস্তারিত ইতিহাস</h2><div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>মাস</th><th>টাকা</th><th>মন্তব্য</th>{% if is_admin %}<th></th>{% endif %}</tr></thead><tbody>{% for d in deposits %}<tr><td>{{d.paid_at}}</td><td>{{d.month}}</td><td>৳{{'{:,}'.format(d.amount)}}</td><td>{{d.note or '—'}}</td>{% if is_admin %}<td><form method="post" action="{{url_for('delete_deposit',deposit_id=d.id)}}" onsubmit="return confirm('এই জমার এন্ট্রি মুছে ফেলবেন?')"><input type="hidden" name="_csrf" value="{{csrf_token()}}"><button class="danger">মুছুন</button></form></td>{% endif %}</tr>{% else %}<tr><td colspan="5">কোনো লেনদেন নেই।</td></tr>{% endfor %}</tbody></table></div></section>{% endblock %}
+
+{% extends 'base.html' %}
+
+{% block title %}{{ member.full_name }}{% endblock %}
+
+{% block content %}
+
+<div class="heading">
+    <div>
+        <h1>{{ member.full_name }}</h1>
+        <p>সদস্য নম্বর #{{ member.id }} • যোগদান {{ member.joined_month }}</p>
+    </div>
+
+    {% if is_admin %}
+    <a class="button" href="{{ url_for('edit_member', member_id=member.id) }}">
+        তথ্য সংশোধন
+    </a>
+    {% endif %}
+</div>
+
+<!-- আর্থিক সারসংক্ষেপ -->
+<div class="stats">
+    <div class="stat">
+        <small>মাসিক নির্ধারিত জমা</small>
+        <strong>৳২,০০০</strong>
+    </div>
+
+    <div class="stat">
+        <small>এ পর্যন্ত প্রত্যাশিত</small>
+        <strong>৳{{ '{:,}'.format(s.expected) }}</strong>
+    </div>
+
+    <div class="stat">
+        <small>মোট জমা</small>
+        <strong>৳{{ '{:,}'.format(s.total) }}</strong>
+    </div>
+
+    <div class="stat">
+        <small>বকেয়া / অগ্রিম</small>
+        <strong>৳{{ '{:,}'.format(s.due) }}</strong>
+
+        {% if s.credit %}
+        <small>অগ্রিম জমা ৳{{ '{:,}'.format(s.credit) }}</small>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ব্যক্তিগত তথ্য ও জমা -->
+<div class="two">
+
+    <section class="panel">
+        <h2>ব্যক্তিগত তথ্য</h2>
+
+        <dl>
+            <dt>নাম</dt>
+            <dd>{{ member.full_name }}</dd>
+
+            <dt>পিতার নাম</dt>
+            <dd>{{ member.father_name or '—' }}</dd>
+
+            <dt>মাতার নাম</dt>
+            <dd>{{ member.mother_name or '—' }}</dd>
+
+            <dt>জন্মতারিখ</dt>
+            <dd>{{ member.birth_date or '—' }}</dd>
+
+            <dt>মোবাইল</dt>
+            <dd>{{ member.phone or '—' }}</dd>
+
+            <dt>ঠিকানা</dt>
+            <dd>{{ member.address or '—' }}</dd>
+
+            <dt>জাতীয় পরিচয়পত্র</dt>
+            <dd>{{ member.nid or '—' }}</dd>
+
+            <dt>ইউজারনেম</dt>
+            <dd>{{ member.username }}</dd>
+        </dl>
+    </section>
+
+    {% if is_admin %}
+    <section class="panel">
+        <h2>নতুন জমা লিখুন</h2>
+        <p>শুধুমাত্র অ্যাডমিন জমা যোগ করতে পারবেন।</p>
+
+        <form method="post">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+            <label>
+                কোন মাসের জমা?
+                <input
+                    type="month"
+                    name="month"
+                    min="{{ member.joined_month }}"
+                    max="{{ today_month }}"
+                    value="{{ today_month }}"
+                    required
+                >
+            </label>
+
+            <label>
+                টাকার পরিমাণ (৳)
+                <input
+                    type="number"
+                    name="amount"
+                    min="1"
+                    max="1000000"
+                    value="2000"
+                    required
+                >
+            </label>
+
+            <label>
+                মন্তব্য (ঐচ্ছিক)
+                <input
+                    type="text"
+                    name="note"
+                    maxlength="300"
+                    placeholder="নগদ জমা / রসিদ নম্বর"
+                >
+            </label>
+
+            <button type="submit" class="primary">
+                জমা সংরক্ষণ করুন
+            </button>
+        </form>
+    </section>
+    {% endif %}
+
+</div>
+
+<!-- মাসভিত্তিক জমা -->
+<section class="panel">
+    <h2>মাসভিত্তিক জমা</h2>
+
+    <div class="tablewrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>মাস</th>
+                    <th>জমা</th>
+                    <th>নির্ধারিত</th>
+                    <th>অবস্থা</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for t in totals %}
+                <tr>
+                    <td>{{ t.month }}</td>
+                    <td>৳{{ '{:,}'.format(t.amount) }}</td>
+                    <td>৳২,০০০</td>
+                    <td>
+                        {% if t.amount >= 2000 %}
+                            সম্পূর্ণ
+                        {% else %}
+                            আংশিক
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">এখনো কোনো জমা নেই।</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="hint">
+        বকেয়া হিসাব যোগদানের মাস থেকে বর্তমান মাস পর্যন্ত
+        মোট নির্ধারিত জমা থেকে সব জমা বাদ দিয়ে গণনা করা হয়।
+    </p>
+</section>
+
+<!-- জমার বিস্তারিত ইতিহাস -->
+<section class="panel">
+    <h2>জমার বিস্তারিত ইতিহাস</h2>
+
+    <div class="tablewrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>তারিখ</th>
+                    <th>মাস</th>
+                    <th>টাকা</th>
+                    <th>মন্তব্য</th>
+
+                    {% if is_admin %}
+                    <th>অ্যাকশন</th>
+                    {% endif %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for d in deposits %}
+                <tr>
+                    <td>{{ d.paid_at }}</td>
+                    <td>{{ d.month }}</td>
+                    <td>৳{{ '{:,}'.format(d.amount) }}</td>
+                    <td>{{ d.note or '—' }}</td>
+
+                    {% if is_admin %}
+                    <td>
+                        <form
+                            method="post"
+                            action="{{ url_for('delete_deposit', deposit_id=d.id) }}"
+                            onsubmit="return confirm('এই জমার এন্ট্রি মুছে ফেলবেন?')"
+                        >
+                            <input
+                                type="hidden"
+                                name="_csrf"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <button type="submit" class="danger">
+                                মুছুন
+                            </button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="5">কোনো লেনদেন নেই।</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}
