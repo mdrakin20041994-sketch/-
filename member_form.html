@@ -1,1 +1,164 @@
-{% extends 'base.html' %}{% block title %}সদস্য নিবন্ধন{% endblock %}{% block content %}<section class="panel"><h1>{{'সদস্যের তথ্য সংশোধন' if member else 'নতুন সদস্য নিবন্ধন'}}</h1><form method="post"><input type="hidden" name="_csrf" value="{{csrf_token()}}"><div class="fields"><label>পূর্ণ নাম *<input name="full_name" required maxlength="120" value="{{member.full_name if member else ''}}"></label>{% if not member %}<label>লগইন ইউজারনেম *<input name="username" required minlength="3" maxlength="50"></label><label>প্রাথমিক পাসওয়ার্ড *<input type="password" name="password" required minlength="8" autocomplete="new-password"></label>{% endif %}<label>পিতার নাম<input name="father_name" maxlength="120" value="{{member.father_name if member else ''}}"></label><label>মাতার নাম<input name="mother_name" maxlength="120" value="{{member.mother_name if member else ''}}"></label><label>জন্মতারিখ<input type="date" name="birth_date" value="{{member.birth_date if member else ''}}"></label><label>মোবাইল নম্বর<input name="phone" maxlength="30" value="{{member.phone if member else ''}}"></label><label>জাতীয় পরিচয়পত্র নম্বর (ঐচ্ছিক)<input name="nid" maxlength="40" value="{{member.nid if member else ''}}"></label><label>যোগদানের মাস *<input type="month" name="joined_month" max="{{today_month}}" value="{{member.joined_month if member else today_month}}" required></label></div><label>ঠিকানা<textarea name="address" rows="3" maxlength="500">{{member.address if member else ''}}</textarea></label><div class="actions"><button class="primary">সংরক্ষণ করুন</button><a class="button" href="{{url_for('admin')}}">ফিরে যান</a></div></form></section>{% endblock %}
+
+{% extends 'base.html' %}
+
+{% block title %}সদস্য নিবন্ধন{% endblock %}
+
+{% block content %}
+
+<section class="panel">
+
+    <div class="heading">
+        <div>
+            <h1>
+                {{ 'সদস্যের তথ্য সংশোধন' if member else 'নতুন সদস্য নিবন্ধন' }}
+            </h1>
+            <p>
+                বন্ধুর বন্ধন সমিতি লিমিটেড
+            </p>
+        </div>
+    </div>
+
+    <form method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+        <h2>সদস্যের প্রাথমিক তথ্য</h2>
+
+        <div class="fields">
+
+            <label>
+                পূর্ণ নাম *
+                <input
+                    type="text"
+                    name="full_name"
+                    required
+                    maxlength="120"
+                    placeholder="সদস্যের সম্পূর্ণ নাম"
+                    value="{{ member.full_name if member else '' }}"
+                >
+            </label>
+
+            {% if not member %}
+
+            <label>
+                লগইন ইউজারনেম *
+                <input
+                    type="text"
+                    name="username"
+                    required
+                    minlength="3"
+                    maxlength="50"
+                    autocomplete="username"
+                    placeholder="ইউনিক ইউজারনেম"
+                >
+            </label>
+
+            <label>
+                প্রাথমিক পাসওয়ার্ড *
+                <input
+                    type="password"
+                    name="password"
+                    required
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="কমপক্ষে ৮ অক্ষর"
+                >
+            </label>
+
+            {% endif %}
+
+            <label>
+                পিতার নাম
+                <input
+                    type="text"
+                    name="father_name"
+                    maxlength="120"
+                    value="{{ member.father_name if member else '' }}"
+                >
+            </label>
+
+            <label>
+                মাতার নাম
+                <input
+                    type="text"
+                    name="mother_name"
+                    maxlength="120"
+                    value="{{ member.mother_name if member else '' }}"
+                >
+            </label>
+
+            <label>
+                জন্মতারিখ
+                <input
+                    type="date"
+                    name="birth_date"
+                    value="{{ member.birth_date if member else '' }}"
+                >
+            </label>
+
+            <label>
+                মোবাইল নম্বর
+                <input
+                    type="tel"
+                    name="phone"
+                    maxlength="30"
+                    placeholder="মোবাইল নম্বর"
+                    value="{{ member.phone if member else '' }}"
+                >
+            </label>
+
+            <label>
+                জাতীয় পরিচয়পত্র নম্বর (ঐচ্ছিক)
+                <input
+                    type="text"
+                    name="nid"
+                    maxlength="40"
+                    value="{{ member.nid if member else '' }}"
+                >
+            </label>
+
+            <label>
+                যোগদানের মাস *
+                <input
+                    type="month"
+                    name="joined_month"
+                    max="{{ today_month }}"
+                    value="{{ member.joined_month if member else today_month }}"
+                    required
+                >
+            </label>
+
+        </div>
+
+        <h2>ঠিকানা</h2>
+
+        <label>
+            বর্তমান ঠিকানা
+            <textarea
+                name="address"
+                rows="4"
+                maxlength="500"
+                placeholder="সদস্যের সম্পূর্ণ ঠিকানা লিখুন"
+            >{{ member.address if member else '' }}</textarea>
+        </label>
+
+        <div class="actions">
+
+            <button type="submit" class="primary">
+                {% if member %}
+                    তথ্য আপডেট করুন
+                {% else %}
+                    সদস্য নিবন্ধন করুন
+                {% endif %}
+            </button>
+
+            <a class="button" href="{{ url_for('admin') }}">
+                ফিরে যান
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}
